@@ -46,13 +46,17 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         String roomId = extractRoomId(session);
+        log.info("WebSocket connection attempt for room: {}", roomId);
+        
         if (roomId == null) {
             session.close(CloseStatus.BAD_DATA.withReason("Room ID required"));
             return;
         }
 
         // Check if room exists
+        log.info("Checking if room exists: {}", roomId);
         if (!roomService.roomExists(roomId)) {
+            log.warn("Room not found: {}", roomId);
             sendMessage(session, WebSocketMessage.error("Room does not exist or has expired"));
             session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Room not found"));
             return;

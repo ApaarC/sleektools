@@ -169,7 +169,8 @@
     @apply relative bg-surface-800/80 backdrop-blur-sm
            border border-surface-700/40 rounded-2xl
            p-6 cursor-pointer overflow-hidden
-           transition-all duration-200 ease-out;
+           transition-all duration-200 ease-out
+           h-full flex flex-col;
   }
 
   .tool-card:hover {
@@ -199,7 +200,7 @@
   }
 
   .page-content {
-    @apply flex-1 container mx-auto px-4 sm:px-6 py-8 max-w-6xl;
+    @apply flex-1 container mx-auto px-4 sm:px-6 py-4 max-w-6xl;
   }
 
   .tool-page {
@@ -266,12 +267,16 @@
      CHAT COMPONENTS
      ============================================ */
   .chat-bubble {
-    @apply px-4 py-2.5 rounded-2xl max-w-[85%] break-words;
+    @apply px-4 py-2.5 rounded-2xl;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    width: fit-content;
+    min-width: 40px;
   }
 
   .chat-bubble-own,
   .chat-bubble-sent {
-    @apply chat-bubble bg-surface-50 text-surface-900 rounded-br-md ml-auto;
+    @apply chat-bubble bg-surface-50 text-surface-900 rounded-br-md;
   }
 
   .chat-bubble-other,

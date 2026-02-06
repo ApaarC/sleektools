@@ -50,10 +50,13 @@ public class RoomService {
 
         Instant now = Instant.now();
         Instant expiresAt = now.plus(maxDurationHours, ChronoUnit.HOURS);
+        
+        String pinFromRequest = request.getPin();
+        log.info("Creating room with PIN from request: '{}' (length: {})", pinFromRequest, pinFromRequest != null ? pinFromRequest.length() : -1);
 
         ChatRoom room = ChatRoom.builder()
                 .id(roomId)
-                .pin(request.getPin())
+                .pin(pinFromRequest)
                 .createdAt(now)
                 .expiresAt(expiresAt)
                 .build();
@@ -61,7 +64,8 @@ public class RoomService {
         rooms.put(roomId, room);
         roomParticipants.put(roomId, new ConcurrentHashMap<>());
 
-        log.info("Created room: {} (expires at {})", roomId, expiresAt);
+        log.info("Created room: {} (expires at {}) with PIN: {}", roomId, expiresAt, room.requiresPin() ? "(protected)" : "(none)");
+        log.info("All rooms now: {}", rooms.keySet());
 
         return RoomResponse.builder()
                 .id(roomId)
@@ -96,9 +100,19 @@ public class RoomService {
      * Validate room PIN
      */
     public boolean validatePin(String roomId, String pin) {
-        return getRoom(roomId)
-                .map(room -> room.validatePin(pin))
-                .orElse(false);
+        log.info("Validating PIN for room: {}, pin provided: '{}' (length: {})", roomId, pin, pin != null ? pin.length() : -1);
+        Optional<ChatRoom> roomOpt = getRoom(roomId);
+        if (!roomOpt.isPresent()) {
+            log.warn("Room not found for PIN validation: {}", roomId);
+            log.info("Available rooms: {}", rooms.keySet());
+            return false;
+        }
+        ChatRoom room = roomOpt.get();
+        String storedPin = room.getPin();
+        log.info("Room found. requiresPin: {}, stored pin: '{}' (length: {})", room.requiresPin(), storedPin, storedPin != null ? storedPin.length() : -1);
+        boolean valid = room.validatePin(pin);
+        log.info("PIN validation result: {}", valid);
+        return valid;
     }
 
     /**

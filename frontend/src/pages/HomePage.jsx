@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Search, Zap, Shield, Lock } from 'lucide-react'
 import { ToolCard } from '@/components'
-import { getAllTools, getAllCategories, getActiveTools } from '@/tool-registry'
+import { getAllTools, getAllCategories } from '@/tool-registry'
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -10,7 +10,6 @@ export default function HomePage() {
   
   const allTools = getAllTools()
   const categories = ['All', ...getAllCategories()]
-  const activeCount = getActiveTools().length
 
   // Filter tools
   const filteredTools = useMemo(() => {
@@ -29,36 +28,22 @@ export default function HomePage() {
 
   return (
     <div className="page-content">
-      {/* Hero Section - Left aligned with balanced layout */}
+      {/* Hero Section - Clean, frictionless */}
       <motion.section 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
-        className="pt-8 pb-12 md:pt-12 md:pb-16"
+        className="pb-8 md:pb-10"
       >
         <div className="max-w-3xl">
-          {/* Status pill */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-3 py-1.5 mb-6
-                       bg-surface-800/80 border border-surface-700/50 
-                       rounded-full text-surface-300 text-sm"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
-            <span>{activeCount} tools ready</span>
-          </motion.div>
-
           {/* Heading */}
           <motion.h1 
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight mb-5"
+            transition={{ delay: 0.1, duration: 0.5 }}
+            className="text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight mb-4"
           >
-            <span className="text-surface-50">Instant tools for</span>
-            <br />
+            <span className="text-surface-50">Instant tools for </span>
             <span className="gradient-text">everyday tasks</span>
           </motion.h1>
 
@@ -66,8 +51,8 @@ export default function HomePage() {
           <motion.p 
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-            className="text-surface-400 text-lg md:text-xl max-w-xl mb-8 leading-relaxed"
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="text-surface-400 text-lg md:text-xl max-w-xl mb-6 leading-relaxed"
           >
             Fast, private utilities that work instantly in your browser. 
             No accounts, no tracking, no complexity.
@@ -77,7 +62,7 @@ export default function HomePage() {
           <motion.div 
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
             className="flex flex-wrap items-center gap-6 text-sm text-surface-400"
           >
             <FeatureItem icon={Zap} text="Instant results" />
@@ -146,7 +131,7 @@ export default function HomePage() {
         )}
       </motion.section>
 
-      {/* Stats Section */}
+      {/* Stats Section - Dev info at bottom */}
       <motion.section
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -155,7 +140,7 @@ export default function HomePage() {
       >
         <div className="card p-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <StatItem value={activeCount} label="Active Tools" />
+            <StatItem value={allTools.filter(t => t.status === 'active').length} label="Active Tools" />
             <StatItem value="100%" label="Client-Side" />
             <StatItem value="0" label="Data Stored" />
             <StatItem value="∞" label="Free Forever" />

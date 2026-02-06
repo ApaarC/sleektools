@@ -52,14 +52,38 @@ export default function QuickChat() {
     setError('')
 
     try {
-      const newRoomId = generateRoomId(config.settings.roomIdLength)
+      // Call backend API to create the room
+      const response = await fetch(`${config.settings.apiEndpoint}/rooms`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          creatorName: name.trim(),
+          pin: usePin && pin ? pin : null
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || 'Failed to create room')
+      }
+
+      const data = await response.json()
+      const newRoomId = data.id
+      
+      // Store room data
+      const roomData = {
+        id: newRoomId,
+        pin: usePin && pin ? pin : null,
+        isCreator: true
+      }
       
       setUserName(name.trim())
-      setRoom({
-        id: newRoomId,
-        pin: usePin ? pin : null,
-        isCreator: true
-      })
+      setRoom(roomData)
+      
+      // Also store in sessionStorage as backup for navigation
+      sessionStorage.setItem(`room_${newRoomId}`, JSON.stringify(roomData))
       
       navigate(`/r/${newRoomId}`)
     } catch (err) {
@@ -85,12 +109,40 @@ export default function QuickChat() {
     setError('')
 
     try {
+      // First check if the room exists
+      const checkResponse = await fetch(`${config.settings.apiEndpoint}/rooms/${roomId.toUpperCase().trim()}/exists`)
+      
+      if (!checkResponse.ok) {
+        throw new Error('Failed to check room')
+      }
+
+      const { exists, requiresPin } = await checkResponse.json()
+      
+      if (!exists) {
+        setError('Room not found. Please check the room ID.')
+        setIsLoading(false)
+        return
+      }
+
+      // If room requires PIN but none provided
+      if (requiresPin && !pin) {
+        setError('This room requires a PIN')
+        setIsLoading(false)
+        return
+      }
+
       setUserName(name.trim())
-      setRoom({
+      
+      const roomData = {
         id: roomId.toUpperCase().trim(),
         pin: pin || null,
         isCreator: false
-      })
+      }
+      
+      setRoom(roomData)
+      
+      // Also store in sessionStorage as backup for navigation
+      sessionStorage.setItem(`room_${roomId.toUpperCase().trim()}`, JSON.stringify(roomData))
       
       navigate(`/r/${roomId.toUpperCase().trim()}`)
     } catch (err) {

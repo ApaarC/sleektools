@@ -19,7 +19,8 @@ import {
   Regex,
   GitCompare,
   Palette,
-  Link2
+  Link2,
+  PenTool
 } from 'lucide-react'
 
 /**
@@ -73,6 +74,18 @@ const toolRegistry = [
     component: lazy(() => import('./tools/chat')),
     category: 'Communication',
     tags: ['chat', 'room', 'messaging', 'realtime'],
+    status: 'active',
+    clientSide: false,
+  },
+  {
+    id: 'canvas',
+    name: 'Collab Canvas',
+    description: 'Draw together in real-time with shareable links',
+    icon: PenTool,
+    path: '/tools/canvas',
+    component: lazy(() => import('./tools/canvas')),
+    category: 'Collaboration',
+    tags: ['canvas', 'draw', 'whiteboard', 'collaborate', 'sketch'],
     status: 'active',
     clientSide: false,
   },

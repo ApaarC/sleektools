@@ -6,6 +6,7 @@ import { ToolLayout, LoadingSpinner } from '@/components'
 import toolRegistry from './tool-registry'
 import HomePage from './pages/HomePage'
 import ChatRoom from './tools/chat/ChatRoom'
+import CanvasRoom from './tools/canvas/CanvasRoom'
 
 function App() {
   const { initTheme } = useThemeStore()
@@ -40,6 +41,9 @@ function App() {
             
             {/* Chat room route with room ID */}
             <Route path="/r/:roomId" element={<ChatRoom />} />
+            
+            {/* Canvas room route with token */}
+            <Route path="/c/:token" element={<CanvasRoom />} />
             
             {/* 404 fallback */}
             <Route path="*" element={<NotFound />} />

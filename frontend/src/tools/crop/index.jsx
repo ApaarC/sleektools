@@ -39,6 +39,7 @@ export default function ImageCrop() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [originalSize, setOriginalSize] = useState(0)
   const [croppedSize, setCroppedSize] = useState(0)
+  const [originalFileName, setOriginalFileName] = useState('')
   const cropperRef = useRef(null)
 
   // Handle file drop
@@ -46,6 +47,10 @@ export default function ImageCrop() {
     const file = acceptedFiles[0]
     if (!file) return
 
+    // Store original filename without extension
+    const nameWithoutExt = file.name.replace(/\.[^/.]+$/, '')
+    setOriginalFileName(nameWithoutExt)
+    
     setOriginalSize(file.size)
     const reader = new FileReader()
     reader.onload = () => {
@@ -114,11 +119,11 @@ export default function ImageCrop() {
 
     const link = document.createElement('a')
     link.href = croppedImage
-    link.download = `cropped-${Date.now()}.jpg`
+    link.download = originalFileName ? `${originalFileName}_cropped.jpg` : `cropped-${Date.now()}.jpg`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-  }, [croppedImage])
+  }, [croppedImage, originalFileName])
 
   // Rotate image
   const handleRotate = useCallback(() => {

@@ -40,7 +40,7 @@ export default function ToolCard({ tool, index }) {
       )}
 
       {/* Content layout - Left aligned */}
-      <div className="flex items-start gap-4">
+      <div className="flex items-start gap-4 flex-1">
         {/* Icon */}
         <div className={clsx(
           'w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0',
@@ -77,8 +77,8 @@ export default function ToolCard({ tool, index }) {
         </div>
       </div>
 
-      {/* Bottom row */}
-      <div className="flex items-center justify-between mt-4 pt-4 border-t border-surface-700/30">
+      {/* Bottom row - pushed to bottom with mt-auto */}
+      <div className="flex items-center justify-between mt-auto pt-4 border-t border-surface-700/30">
         <span className="text-xs text-surface-500 bg-surface-800/50 px-2 py-1 rounded-md">
           {tool.category}
         </span>

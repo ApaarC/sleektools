@@ -1,10 +1,8 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Send,
-  Copy,
-  Check,
   Users,
   Clock,
   ArrowLeft,
@@ -12,9 +10,11 @@ import {
   Wifi,
   WifiOff,
   Share2,
-  LogOut
+  LogOut,
+  Key,
+  Check
 } from 'lucide-react'
-import { Button, Input, Card, Badge } from '@/components'
+import { Button, Badge } from '@/components'
 import { useChatStore } from '@/store'
 import config from './config'
 
@@ -23,27 +23,31 @@ export default function ChatRoom() {
   const navigate = useNavigate()
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
+  const wsRef = useRef(null)
+  const reconnectTimeoutRef = useRef(null)
   
-  const {
-    userName,
-    messages,
-    participants,
-    isConnected,
-    isConnecting,
-    error,
-    addMessage,
-    setMessages,
-    setParticipants,
-    setConnectionStatus,
-    setError,
-    setWebSocket,
-    clearChat
-  } = useChatStore()
+  // Get store values - separate selectors for stability
+  const userName = useChatStore(state => state.userName)
+  const currentRoom = useChatStore(state => state.currentRoom)
+  const messages = useChatStore(state => state.messages)
+  const participants = useChatStore(state => state.participants)
+  const isConnected = useChatStore(state => state.isConnected)
+  const isConnecting = useChatStore(state => state.isConnecting)
+  const error = useChatStore(state => state.error)
+  
+  // Get store actions
+  const addMessage = useChatStore(state => state.addMessage)
+  const setParticipants = useChatStore(state => state.setParticipants)
+  const setConnectionStatus = useChatStore(state => state.setConnectionStatus)
+  const setError = useChatStore(state => state.setError)
+  const clearChat = useChatStore(state => state.clearChat)
 
   const [message, setMessage] = useState('')
   const [copied, setCopied] = useState(false)
   const [showParticipants, setShowParticipants] = useState(false)
-  const wsRef = useRef(null)
+  const [needsPin, setNeedsPin] = useState(false)
+  const [pinInput, setPinInput] = useState('')
+  const [enteredPin, setEnteredPin] = useState('')
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -57,30 +61,143 @@ export default function ChatRoom() {
       return
     }
 
-    setConnectionStatus(false, true)
-
-    // For demo purposes, we'll simulate a WebSocket connection
     const connectWebSocket = () => {
-      try {
-        // Simulate successful connection after a short delay
-        setTimeout(() => {
-          setConnectionStatus(true, false)
-          
-          // Add system message
-          addMessage({
-            id: Date.now(),
-            type: 'system',
-            content: `Welcome to room ${roomId}! Messages are not stored.`,
-            timestamp: new Date().toISOString()
-          })
+      setConnectionStatus(false, true)
+      setError(null)
 
-          // Simulate participants
-          setParticipants([
-            { id: '1', name: userName, isMe: true }
-          ])
-        }, 500)
+      try {
+        const wsUrl = `${config.settings.wsEndpoint}/${roomId}`
+        console.log('Connecting to WebSocket:', wsUrl)
+        
+        const ws = new WebSocket(wsUrl)
+        wsRef.current = ws
+
+        ws.onopen = () => {
+          console.log('WebSocket connected, sending join...')
+          // Send join message with name and PIN
+          // Read from store directly to avoid stale closure
+          const storeState = useChatStore.getState()
+          let roomPin = storeState.currentRoom?.pin || ''
+          
+          // Fallback to sessionStorage if store is empty
+          if (!roomPin) {
+            try {
+              const storedRoom = sessionStorage.getItem(`room_${roomId}`)
+              if (storedRoom) {
+                const parsed = JSON.parse(storedRoom)
+                roomPin = parsed.pin || ''
+                console.log('Got PIN from sessionStorage')
+              }
+            } catch (e) {
+              console.error('Failed to read from sessionStorage:', e)
+            }
+          }
+          
+          console.log('Current room from store:', storeState.currentRoom)
+          console.log('Sending PIN:', roomPin ? `"${roomPin}"` : '(no pin)')
+          const joinMessage = {
+            type: 'JOIN',
+            senderName: userName,
+            content: roomPin
+          }
+          ws.send(JSON.stringify(joinMessage))
+        }
+
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data)
+            console.log('Received:', data)
+            
+            // Get latest store actions to avoid stale closures
+            const store = useChatStore.getState()
+            
+            switch (data.type) {
+              case 'MESSAGE':
+                store.addMessage({
+                  id: data.timestamp || Date.now(),
+                  type: 'message',
+                  senderId: data.senderId,
+                  sender: data.senderName,
+                  content: String(data.content || ''),
+                  timestamp: new Date(data.timestamp).toISOString(),
+                  isMe: data.senderName === userName
+                })
+                break
+
+              case 'JOIN':
+                store.addMessage({
+                  id: data.timestamp || Date.now(),
+                  type: 'system',
+                  content: String(data.content || `${data.senderName} joined the room`),
+                  timestamp: new Date(data.timestamp).toISOString()
+                })
+                break
+
+              case 'LEAVE':
+                store.addMessage({
+                  id: data.timestamp || Date.now(),
+                  type: 'system',
+                  content: String(data.content || `${data.senderName} left the room`),
+                  timestamp: new Date(data.timestamp).toISOString()
+                })
+                break
+
+              case 'PARTICIPANTS':
+                if (data.data && Array.isArray(data.data)) {
+                  store.setParticipants(data.data.map(p => ({
+                    id: p.id,
+                    name: p.name,
+                    isMe: p.name === userName
+                  })))
+                }
+                break
+
+              case 'SYSTEM':
+                if (data.content?.includes('Welcome')) {
+                  store.setConnectionStatus(true, false)
+                  store.setError(null) // Clear any previous errors
+                }
+                store.addMessage({
+                  id: data.timestamp || Date.now(),
+                  type: 'system',
+                  content: String(data.content || ''),
+                  timestamp: new Date(data.timestamp || Date.now()).toISOString()
+                })
+                break
+
+              case 'ERROR':
+                store.setError(String(data.content || 'Unknown error'))
+                break
+
+              default:
+                console.log('Unknown message type:', data.type)
+            }
+          } catch (e) {
+            console.error('Failed to parse message:', e)
+          }
+        }
+
+        ws.onclose = (event) => {
+          console.log('WebSocket closed:', event.code, event.reason)
+          setConnectionStatus(false, false)
+          
+          if (event.code !== 1000 && event.code !== 1001) {
+            reconnectTimeoutRef.current = setTimeout(() => {
+              if (wsRef.current === ws) {
+                console.log('Attempting to reconnect...')
+                connectWebSocket()
+              }
+            }, 3000)
+          }
+        }
+
+        ws.onerror = (error) => {
+          console.error('WebSocket error:', error)
+          setError('Connection error. Trying to reconnect...')
+        }
 
       } catch (err) {
+        console.error('Failed to connect:', err)
         setError('Failed to connect to chat server')
         setConnectionStatus(false, false)
       }
@@ -88,43 +205,42 @@ export default function ChatRoom() {
 
     connectWebSocket()
 
-    // Cleanup on unmount
     return () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current)
+      }
       if (wsRef.current) {
-        wsRef.current.close()
+        wsRef.current.close(1000, 'User left')
+        wsRef.current = null
       }
       clearChat()
     }
-  }, [roomId, userName, navigate, setConnectionStatus, setError, addMessage, setParticipants, clearChat])
+  }, [roomId, userName, navigate, currentRoom?.pin, setConnectionStatus, setError, clearChat])
 
   // Send message
-  const handleSendMessage = useCallback(() => {
-    if (!message.trim() || !isConnected) return
+  const handleSendMessage = () => {
+    if (!message.trim() || !wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return
 
-    const newMessage = {
-      id: Date.now(),
-      type: 'message',
-      sender: userName,
-      content: message.trim(),
-      timestamp: new Date().toISOString(),
-      isMe: true
+    const chatMessage = {
+      type: 'MESSAGE',
+      content: message.trim()
     }
 
-    addMessage(newMessage)
+    wsRef.current.send(JSON.stringify(chatMessage))
     setMessage('')
     inputRef.current?.focus()
-  }, [message, isConnected, userName, addMessage])
+  }
 
   // Handle Enter key
-  const handleKeyPress = useCallback((e) => {
+  const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSendMessage()
     }
-  }, [handleSendMessage])
+  }
 
   // Copy room link
-  const copyRoomLink = useCallback(async () => {
+  const copyRoomLink = async () => {
     const url = window.location.href
     try {
       await navigator.clipboard.writeText(url)
@@ -133,23 +249,28 @@ export default function ChatRoom() {
     } catch (err) {
       console.error('Failed to copy:', err)
     }
-  }, [])
+  }
 
   // Leave room
-  const handleLeaveRoom = useCallback(() => {
+  const handleLeaveRoom = () => {
     if (wsRef.current) {
-      wsRef.current.close()
+      wsRef.current.close(1000, 'User left')
+      wsRef.current = null
     }
     clearChat()
     navigate('/tools/chat')
-  }, [clearChat, navigate])
+  }
 
   // Format time
   const formatTime = (timestamp) => {
-    return new Date(timestamp).toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    })
+    try {
+      return new Date(timestamp).toLocaleTimeString([], { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      })
+    } catch {
+      return ''
+    }
   }
 
   if (!userName) {
@@ -169,10 +290,18 @@ export default function ChatRoom() {
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-lg font-semibold text-surface-100">
                 Room: {roomId}
               </h1>
+              {currentRoom?.isCreator && currentRoom?.pin && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 
+                               bg-amber-500/10 text-amber-400 text-xs rounded-md
+                               border border-amber-500/20">
+                  <Key className="w-3 h-3" />
+                  PIN: {currentRoom.pin}
+                </span>
+              )}
               <Badge variant={isConnected ? 'success' : 'warning'}>
                 {isConnected ? (
                   <>
@@ -200,7 +329,6 @@ export default function ChatRoom() {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Participants toggle */}
           <Button
             variant="ghost"
             onClick={() => setShowParticipants(!showParticipants)}
@@ -209,7 +337,6 @@ export default function ChatRoom() {
             <span className="hidden sm:inline">{participants.length}</span>
           </Button>
 
-          {/* Copy link */}
           <Button
             variant="secondary"
             onClick={copyRoomLink}
@@ -218,7 +345,6 @@ export default function ChatRoom() {
             <span className="hidden sm:inline">{copied ? 'Copied!' : 'Share'}</span>
           </Button>
 
-          {/* Leave */}
           <Button
             variant="danger"
             onClick={handleLeaveRoom}
@@ -230,18 +356,19 @@ export default function ChatRoom() {
       </div>
 
       {/* Main content area */}
-      <div className="flex-1 flex gap-4 mt-4 overflow-hidden">
+      <div className="flex-1 flex gap-4 mt-4 overflow-hidden min-h-0">
         {/* Messages */}
-        <div className="flex-1 flex flex-col card overflow-hidden">
+        <div className="flex-1 flex flex-col card overflow-hidden min-w-0">
           {/* Messages list */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             <AnimatePresence initial={false}>
-              {messages.map((msg) => (
+              {messages.map((msg, index) => (
                 <motion.div
-                  key={msg.id}
+                  key={msg.id || index}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
+                  className="w-full"
                 >
                   {msg.type === 'system' ? (
                     <div className="text-center">
@@ -251,23 +378,21 @@ export default function ChatRoom() {
                       </span>
                     </div>
                   ) : (
-                    <div className={`flex ${msg.isMe ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[75%] ${msg.isMe ? 'order-2' : ''}`}>
-                        {!msg.isMe && (
-                          <span className="text-xs text-surface-500 ml-1 mb-1 block">
-                            {msg.sender}
-                          </span>
-                        )}
+                    <div className={`flex w-full ${msg.isMe ? 'justify-end' : 'justify-start'}`}>
+                      <div className="max-w-[75%]">
+                        <p className={`text-xs font-medium mb-1 ${
+                          msg.isMe ? 'text-right text-teal-400' : 'text-left text-surface-300'
+                        }`}>
+                          {msg.isMe ? 'You' : msg.sender}
+                        </p>
                         <div className={msg.isMe ? 'chat-bubble-sent' : 'chat-bubble-received'}>
-                          <p className="text-sm whitespace-pre-wrap break-words">
-                            {msg.content}
-                          </p>
+                          {msg.content}
                         </div>
-                        <span className={`text-xs text-surface-600 mt-1 block ${
-                          msg.isMe ? 'text-right mr-1' : 'ml-1'
+                        <p className={`text-xs text-surface-600 mt-1 ${
+                          msg.isMe ? 'text-right' : 'text-left'
                         }`}>
                           {formatTime(msg.timestamp)}
-                        </span>
+                        </p>
                       </div>
                     </div>
                   )}
@@ -279,13 +404,13 @@ export default function ChatRoom() {
 
           {/* Input area */}
           <div className="p-4 border-t border-surface-700/50">
-            {error ? (
+            {error && (
               <div className="flex items-center gap-2 p-3 bg-crimson-500/10 
                            border border-crimson-500/20 rounded-xl mb-3">
                 <AlertCircle className="w-5 h-5 text-crimson-400 flex-shrink-0" />
                 <span className="text-crimson-400 text-sm">{error}</span>
               </div>
-            ) : null}
+            )}
             
             <div className="flex gap-2">
               <input
@@ -293,8 +418,8 @@ export default function ChatRoom() {
                 type="text"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Type a message..."
+                onKeyDown={handleKeyDown}
+                placeholder={isConnected ? "Type a message..." : "Connecting..."}
                 disabled={!isConnected}
                 maxLength={config.settings.maxMessageLength}
                 className="input flex-1"
@@ -329,7 +454,7 @@ export default function ChatRoom() {
                     key={p.id}
                     className="flex items-center gap-2 p-2 rounded-lg bg-surface-800/50"
                   >
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-steel-500 
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-teal-700 
                                   flex items-center justify-center text-white text-sm font-medium">
                       {p.name.charAt(0).toUpperCase()}
                     </div>
