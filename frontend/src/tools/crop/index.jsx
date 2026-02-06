@@ -169,9 +169,9 @@ export default function ImageCrop() {
     <div className="tool-page">
       {/* Header */}
       <div className="tool-header">
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500/20 to-purple-500/20 
+        <div className="w-11 h-11 rounded-xl bg-surface-800 border border-surface-700/50
                       flex items-center justify-center">
-          <Crop className="w-6 h-6 text-primary-400" />
+          <Crop className="w-5 h-5 text-surface-300" />
         </div>
         <div>
           <h1 className="tool-title">Image Crop & Compress</h1>
@@ -194,11 +194,11 @@ export default function ImageCrop() {
                 <div
                   {...getRootProps()}
                   className={`
-                    glass-card p-12 min-h-[400px] flex flex-col items-center justify-center
+                    card p-12 min-h-[400px] flex flex-col items-center justify-center
                     cursor-pointer transition-all duration-300 border-2 border-dashed
                     ${isDragActive 
-                      ? 'border-primary-500 bg-primary-500/10' 
-                      : 'border-dark-600 hover:border-primary-500/50'
+                      ? 'border-teal-500 bg-teal-500/5' 
+                      : 'border-surface-600 hover:border-surface-500'
                     }
                   `}
                 >
@@ -207,18 +207,18 @@ export default function ImageCrop() {
                     animate={{ y: isDragActive ? -10 : 0 }}
                     className="text-center"
                   >
-                    <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br 
-                                  from-primary-500/20 to-purple-500/20 
+                    <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-surface-800 
+                                  border border-surface-700/50
                                   flex items-center justify-center">
-                      <Upload className="w-10 h-10 text-primary-400" />
+                      <Upload className="w-10 h-10 text-surface-400" />
                     </div>
-                    <h3 className="text-xl font-semibold text-dark-200 mb-2">
+                    <h3 className="text-xl font-semibold text-surface-200 mb-2">
                       {isDragActive ? 'Drop your image here' : 'Drag & drop an image'}
                     </h3>
-                    <p className="text-dark-500 mb-4">
+                    <p className="text-surface-500 mb-4">
                       or click to browse your files
                     </p>
-                    <p className="text-xs text-dark-600">
+                    <p className="text-xs text-surface-600">
                       Supports JPEG, PNG, WebP, GIF • Max 20MB
                     </p>
                   </motion.div>
@@ -230,9 +230,9 @@ export default function ImageCrop() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="glass-card p-4"
+                className="card p-4"
               >
-                <div className="relative overflow-hidden rounded-xl bg-dark-950">
+                <div className="relative overflow-hidden rounded-xl bg-surface-950">
                   <Cropper
                     ref={cropperRef}
                     src={originalImage}
@@ -251,14 +251,14 @@ export default function ImageCrop() {
                 </div>
 
                 {/* Cropper Controls */}
-                <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-dark-700">
+                <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-surface-700/50">
                   <Button onClick={handleZoomIn} variant="ghost" icon={ZoomIn}>
                     Zoom In
                   </Button>
                   <Button onClick={handleZoomOut} variant="ghost" icon={ZoomOut}>
                     Zoom Out
                   </Button>
-                  <div className="h-6 w-px bg-dark-700" />
+                  <div className="h-6 w-px bg-surface-700" />
                   <Button onClick={handleRotate} variant="ghost" icon={RotateCw}>
                     Rotate
                   </Button>
@@ -268,7 +268,7 @@ export default function ImageCrop() {
                   <Button onClick={handleFlipV} variant="ghost" icon={FlipVertical}>
                     Flip V
                   </Button>
-                  <div className="h-6 w-px bg-dark-700" />
+                  <div className="h-6 w-px bg-surface-700" />
                   <Button onClick={handleReset} variant="ghost" icon={RefreshCw}>
                     Reset
                   </Button>
@@ -287,8 +287,8 @@ export default function ImageCrop() {
               >
                 <Card>
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-medium text-dark-200 flex items-center gap-2">
-                      <Check className="w-5 h-5 text-green-400" />
+                    <h3 className="font-medium text-surface-200 flex items-center gap-2">
+                      <Check className="w-5 h-5 text-teal-400" />
                       Cropped Result
                     </h3>
                     <div className="flex items-center gap-2">
@@ -302,7 +302,7 @@ export default function ImageCrop() {
                       )}
                     </div>
                   </div>
-                  <div className="relative rounded-xl overflow-hidden bg-dark-950 flex items-center justify-center p-4">
+                  <div className="relative rounded-xl overflow-hidden bg-surface-950 flex items-center justify-center p-4">
                     <img
                       src={croppedImage}
                       alt="Cropped preview"
@@ -319,7 +319,7 @@ export default function ImageCrop() {
         <div className="space-y-4">
           {/* Aspect Ratio */}
           <Card>
-            <h3 className="font-medium text-dark-200 mb-4">Aspect Ratio</h3>
+            <h3 className="font-medium text-surface-200 mb-4">Aspect Ratio</h3>
             <div className="grid grid-cols-3 gap-2">
               {config.settings.aspectRatios.map((ratio) => (
                 <button
@@ -333,8 +333,8 @@ export default function ImageCrop() {
                   className={`
                     px-3 py-2 text-sm rounded-xl transition-all font-medium
                     ${(isNaN(aspectRatio) && isNaN(ratio.value)) || aspectRatio === ratio.value
-                      ? 'bg-primary-500 text-white'
-                      : 'bg-dark-700 text-dark-400 hover:bg-dark-600'
+                      ? 'bg-surface-50 text-surface-900'
+                      : 'bg-surface-750 text-surface-400 hover:bg-surface-700'
                     }
                   `}
                 >
@@ -346,7 +346,7 @@ export default function ImageCrop() {
 
           {/* Quality */}
           <Card>
-            <h3 className="font-medium text-dark-200 mb-4">Output Quality</h3>
+            <h3 className="font-medium text-surface-200 mb-4">Output Quality</h3>
             <div className="space-y-2">
               {config.settings.qualityOptions.map((option) => (
                 <button
@@ -356,8 +356,8 @@ export default function ImageCrop() {
                     w-full px-4 py-3 text-sm rounded-xl transition-all font-medium text-left
                     flex items-center justify-between
                     ${quality === option.value
-                      ? 'bg-primary-500 text-white'
-                      : 'bg-dark-700 text-dark-400 hover:bg-dark-600'
+                      ? 'bg-surface-50 text-surface-900'
+                      : 'bg-surface-750 text-surface-400 hover:bg-surface-700'
                     }
                   `}
                 >
@@ -370,25 +370,25 @@ export default function ImageCrop() {
 
           {/* File Info */}
           {originalImage && (
-            <Card className="bg-dark-800/30">
-              <h3 className="font-medium text-dark-200 mb-3 flex items-center gap-2">
+            <Card className="bg-surface-850/50">
+              <h3 className="font-medium text-surface-200 mb-3 flex items-center gap-2">
                 <ImageIcon className="w-4 h-4" />
                 File Info
               </h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-dark-500">Original Size</span>
-                  <span className="text-dark-300">{formatSize(originalSize)}</span>
+                  <span className="text-surface-500">Original Size</span>
+                  <span className="text-surface-300">{formatSize(originalSize)}</span>
                 </div>
                 {croppedSize > 0 && (
                   <>
                     <div className="flex justify-between">
-                      <span className="text-dark-500">Cropped Size</span>
-                      <span className="text-dark-300">{formatSize(croppedSize)}</span>
+                      <span className="text-surface-500">Cropped Size</span>
+                      <span className="text-surface-300">{formatSize(croppedSize)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-dark-500">Saved</span>
-                      <span className="text-green-400">{compressionRatio}%</span>
+                      <span className="text-surface-500">Saved</span>
+                      <span className="text-teal-400">{compressionRatio}%</span>
                     </div>
                   </>
                 )}
@@ -433,9 +433,9 @@ export default function ImageCrop() {
           </div>
 
           {/* Tips */}
-          <Card className="bg-dark-800/30">
-            <h3 className="text-sm font-medium text-dark-300 mb-2">💡 Tips</h3>
-            <ul className="text-xs text-dark-500 space-y-1">
+          <Card className="bg-surface-850/50">
+            <h3 className="text-sm font-medium text-surface-300 mb-2">💡 Tips</h3>
+            <ul className="text-xs text-surface-500 space-y-1">
               <li>• Drag to move the crop area</li>
               <li>• Use corners to resize</li>
               <li>• Lower quality = smaller file size</li>
@@ -449,14 +449,14 @@ export default function ImageCrop() {
       <style>{`
         .cropper-dark .cropper-view-box,
         .cropper-dark .cropper-face {
-          outline: 2px solid rgba(14, 165, 233, 0.8);
-          outline-color: rgba(14, 165, 233, 0.8);
+          outline: 2px solid rgba(20, 184, 166, 0.8);
+          outline-color: rgba(20, 184, 166, 0.8);
         }
         .cropper-dark .cropper-line {
-          background-color: rgba(14, 165, 233, 0.8);
+          background-color: rgba(20, 184, 166, 0.8);
         }
         .cropper-dark .cropper-point {
-          background-color: rgba(14, 165, 233, 1);
+          background-color: rgba(20, 184, 166, 1);
           width: 10px;
           height: 10px;
         }

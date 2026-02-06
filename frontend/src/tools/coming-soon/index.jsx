@@ -17,18 +17,18 @@ export default function ComingSoon() {
         >
           {/* Icon */}
           <div className="w-24 h-24 mx-auto mb-8 rounded-3xl 
-                        bg-gradient-to-br from-primary-500/20 to-purple-500/20 
+                        bg-surface-800 border border-surface-700/50
                         flex items-center justify-center">
-            <Clock className="w-12 h-12 text-primary-400" />
+            <Clock className="w-12 h-12 text-surface-400" />
           </div>
 
           {/* Title */}
-          <h1 className="text-3xl font-bold text-dark-100 mb-4">
+          <h1 className="text-3xl font-bold text-surface-100 mb-4">
             Coming Soon
           </h1>
 
           {/* Description */}
-          <p className="text-dark-400 text-lg mb-8 max-w-md mx-auto">
+          <p className="text-surface-400 text-lg mb-8 max-w-md mx-auto">
             We're working hard to bring this tool to life. 
             It will be available in a future update.
           </p>
@@ -53,25 +53,25 @@ export default function ComingSoon() {
           </div>
 
           {/* Features Preview */}
-          <Card className="mt-12 text-left bg-dark-800/30">
-            <h3 className="text-sm font-medium text-dark-300 mb-4">
+          <Card className="mt-12 text-left bg-surface-850/50">
+            <h3 className="text-sm font-medium text-surface-300 mb-4">
               🚀 What to expect
             </h3>
-            <ul className="space-y-3 text-sm text-dark-500">
+            <ul className="space-y-3 text-sm text-surface-500">
               <li className="flex items-start gap-2">
-                <span className="text-primary-400 mt-1">•</span>
+                <span className="text-teal-400 mt-1">•</span>
                 <span>Fast, client-side processing when possible</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-primary-400 mt-1">•</span>
+                <span className="text-teal-400 mt-1">•</span>
                 <span>Clean, minimal interface with no clutter</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-primary-400 mt-1">•</span>
+                <span className="text-teal-400 mt-1">•</span>
                 <span>No account required - just works instantly</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-primary-400 mt-1">•</span>
+                <span className="text-teal-400 mt-1">•</span>
                 <span>Privacy-first design with no data collection</span>
               </li>
             </ul>

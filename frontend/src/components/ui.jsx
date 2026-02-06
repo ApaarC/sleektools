@@ -24,16 +24,14 @@ export const Button = forwardRef(({
   }
 
   const sizes = {
-    sm: 'text-sm px-3 py-2',
-    md: 'text-sm px-4 py-2.5',
-    lg: 'text-base px-6 py-3',
+    sm: 'btn-sm',
+    md: 'btn-md',
+    lg: 'btn-lg',
   }
 
   return (
-    <motion.button
+    <button
       ref={ref}
-      whileHover={{ scale: disabled ? 1 : 1.02 }}
-      whileTap={{ scale: disabled ? 1 : 0.98 }}
       disabled={disabled || isLoading}
       className={clsx(
         variants[variant],
@@ -55,7 +53,7 @@ export const Button = forwardRef(({
           {Icon && iconPosition === 'right' && <Icon className="w-4 h-4" />}
         </>
       )}
-    </motion.button>
+    </button>
   )
 })
 
@@ -74,29 +72,29 @@ export const Input = forwardRef(({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-dark-300 mb-2">
+        <label className="block text-sm font-medium text-surface-300 mb-2">
           {label}
         </label>
       )}
       <div className="relative">
         {Icon && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-500">
-            <Icon className="w-5 h-5" />
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-surface-500">
+            <Icon className="w-4 h-4" />
           </div>
         )}
         <input
           ref={ref}
           className={clsx(
             'input',
-            Icon && 'pl-10',
-            error && 'border-red-500 focus:ring-red-500/50 focus:border-red-500',
+            Icon && 'pl-11',
+            error && 'border-crimson-500/50 focus:border-crimson-500 focus:ring-crimson-500/20',
             className
           )}
           {...props}
         />
       </div>
       {error && (
-        <p className="mt-1.5 text-sm text-red-400">{error}</p>
+        <p className="mt-2 text-sm text-crimson-400">{error}</p>
       )}
     </div>
   )
@@ -116,7 +114,7 @@ export const Textarea = forwardRef(({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-dark-300 mb-2">
+        <label className="block text-sm font-medium text-surface-300 mb-2">
           {label}
         </label>
       )}
@@ -124,13 +122,13 @@ export const Textarea = forwardRef(({
         ref={ref}
         className={clsx(
           'code-editor',
-          error && 'border-red-500 focus:ring-red-500/50 focus:border-red-500',
+          error && 'border-crimson-500/50 focus:border-crimson-500 focus:ring-crimson-500/20',
           className
         )}
         {...props}
       />
       {error && (
-        <p className="mt-1.5 text-sm text-red-400">{error}</p>
+        <p className="mt-2 text-sm text-crimson-400">{error}</p>
       )}
     </div>
   )
@@ -141,20 +139,18 @@ Textarea.displayName = 'Textarea'
 /**
  * Card - Reusable card component
  */
-export function Card({ children, className, hover = false, ...props }) {
+export function Card({ children, className, padding = true, ...props }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
+    <div
       className={clsx(
-        'glass-card p-6',
-        hover && 'card-hover',
+        'card',
+        padding && 'p-6',
         className
       )}
       {...props}
     >
       {children}
-    </motion.div>
+    </div>
   )
 }
 
@@ -167,6 +163,7 @@ export function Badge({ children, variant = 'info', className }) {
     error: 'badge-error',
     warning: 'badge-warning',
     info: 'badge-info',
+    neutral: 'badge-neutral',
   }
 
   return (
@@ -191,9 +188,10 @@ export function Tooltip({ children, content, position = 'top' }) {
     <div className="relative group">
       {children}
       <div className={clsx(
-        'absolute z-50 px-2 py-1 text-xs font-medium text-white',
-        'bg-dark-700 rounded-lg shadow-lg whitespace-nowrap',
-        'opacity-0 group-hover:opacity-100 transition-opacity duration-200',
+        'absolute z-50 px-2.5 py-1.5 text-xs font-medium',
+        'bg-surface-750 text-surface-100 border border-surface-600/50',
+        'rounded-lg shadow-elevation-2 whitespace-nowrap',
+        'opacity-0 group-hover:opacity-100 transition-opacity duration-150',
         'pointer-events-none',
         positions[position]
       )}>
@@ -204,64 +202,104 @@ export function Tooltip({ children, content, position = 'top' }) {
 }
 
 /**
- * Divider - Horizontal divider
- */
-export function Divider({ className }) {
-  return (
-    <div className={clsx('h-px bg-dark-700', className)} />
-  )
-}
-
-/**
  * IconButton - Icon-only button
  */
-export const IconButton = forwardRef(({ 
+export function IconButton({ 
   icon: Icon, 
+  label, 
   variant = 'ghost',
   size = 'md',
   className,
   ...props 
-}, ref) => {
+}) {
   const sizes = {
-    sm: 'w-8 h-8',
-    md: 'w-10 h-10',
-    lg: 'w-12 h-12',
+    sm: 'p-1.5',
+    md: 'p-2',
+    lg: 'p-2.5',
   }
 
   const iconSizes = {
     sm: 'w-4 h-4',
-    md: 'w-5 h-5',
-    lg: 'w-6 h-6',
+    md: 'w-4 h-4',
+    lg: 'w-5 h-5',
   }
 
   return (
-    <motion.button
-      ref={ref}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
+    <Tooltip content={label}>
+      <button
+        aria-label={label}
+        className={clsx(
+          'btn-icon',
+          sizes[size],
+          className
+        )}
+        {...props}
+      >
+        <Icon className={iconSizes[size]} />
+      </button>
+    </Tooltip>
+  )
+}
+
+/**
+ * Divider - Horizontal divider
+ */
+export function Divider({ className }) {
+  return <div className={clsx('divider my-4', className)} />
+}
+
+/**
+ * LoadingSpinner - Animated loading indicator
+ */
+export function LoadingSpinner({ size = 'md', className }) {
+  const sizes = {
+    sm: 'w-4 h-4',
+    md: 'w-6 h-6',
+    lg: 'w-8 h-8',
+  }
+
+  return (
+    <motion.div
+      animate={{ rotate: 360 }}
+      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
       className={clsx(
-        'btn rounded-xl flex items-center justify-center p-0',
-        variant === 'ghost' && 'bg-transparent hover:bg-dark-800 text-dark-400 hover:text-dark-100',
-        variant === 'primary' && 'bg-primary-500 hover:bg-primary-600 text-white',
+        'border-2 border-surface-600 border-t-surface-300 rounded-full',
         sizes[size],
         className
       )}
-      {...props}
-    >
-      <Icon className={iconSizes[size]} />
-    </motion.button>
+    />
   )
-})
+}
 
-IconButton.displayName = 'IconButton'
-
-export default {
-  Button,
-  Input,
-  Textarea,
-  Card,
-  Badge,
-  Tooltip,
-  Divider,
-  IconButton,
+/**
+ * EmptyState - Placeholder for empty content
+ */
+export function EmptyState({ 
+  icon: Icon, 
+  title, 
+  description, 
+  action,
+  className 
+}) {
+  return (
+    <div className={clsx('text-center py-12', className)}>
+      {Icon && (
+        <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-surface-800 
+                      border border-surface-700/50 flex items-center justify-center">
+          <Icon className="w-6 h-6 text-surface-500" />
+        </div>
+      )}
+      {title && (
+        <h3 className="text-base font-medium text-surface-200 mb-1">
+          {title}
+        </h3>
+      )}
+      {description && (
+        <p className="text-sm text-surface-500 mb-4">
+          {description}
+        </p>
+      )}
+      {action}
+    </div>
+  )
 }

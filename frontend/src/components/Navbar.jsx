@@ -20,35 +20,29 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 glass border-b border-dark-700/50">
-        <div className="container mx-auto px-4 max-w-6xl">
+      <nav className="sticky top-0 z-50 bg-surface-900/80 backdrop-blur-xl border-b border-surface-700/40">
+        <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link 
               to="/" 
-              className="flex items-center gap-2 group"
+              className="flex items-center gap-3 group"
               onClick={closeMobileMenu}
             >
-              <motion.div
-                whileHover={{ rotate: 180 }}
-                transition={{ duration: 0.3 }}
-                className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-purple-500 
-                         flex items-center justify-center shadow-glow"
-              >
-                <Zap className="w-5 h-5 text-white" />
-              </motion.div>
-              <span className="font-bold text-lg gradient-text">
+              <div className="w-8 h-8 rounded-lg bg-surface-50 
+                            flex items-center justify-center
+                            group-hover:shadow-glow-sm transition-shadow duration-200">
+                <Zap className="w-4 h-4 text-surface-900" />
+              </div>
+              <span className="font-semibold text-surface-50 tracking-tight">
                 SleekTools
               </span>
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-1">
               {!isHome && (
-                <Link 
-                  to="/"
-                  className="btn-ghost"
-                >
+                <Link to="/" className="btn-ghost">
                   <Home className="w-4 h-4" />
                   <span>Home</span>
                 </Link>
@@ -76,7 +70,7 @@ export default function Navbar() {
                       initial={{ rotate: -90, opacity: 0 }}
                       animate={{ rotate: 0, opacity: 1 }}
                       exit={{ rotate: 90, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
+                      transition={{ duration: 0.15 }}
                     >
                       <Sun className="w-4 h-4" />
                     </motion.div>
@@ -86,7 +80,7 @@ export default function Navbar() {
                       initial={{ rotate: 90, opacity: 0 }}
                       animate={{ rotate: 0, opacity: 1 }}
                       exit={{ rotate: -90, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
+                      transition={{ duration: 0.15 }}
                     >
                       <Moon className="w-4 h-4" />
                     </motion.div>
@@ -99,7 +93,9 @@ export default function Navbar() {
             {/* Mobile Menu Button */}
             <button
               onClick={toggleMobileMenu}
-              className="md:hidden btn-ghost p-2"
+              className="md:hidden p-2 rounded-xl text-surface-400 
+                       hover:text-surface-100 hover:bg-surface-800
+                       transition-colors duration-150"
               aria-label="Toggle menu"
             >
               <AnimatePresence mode="wait">
@@ -109,6 +105,7 @@ export default function Navbar() {
                     initial={{ rotate: -90, opacity: 0 }}
                     animate={{ rotate: 0, opacity: 1 }}
                     exit={{ rotate: 90, opacity: 0 }}
+                    transition={{ duration: 0.15 }}
                   >
                     <X className="w-5 h-5" />
                   </motion.div>
@@ -118,6 +115,7 @@ export default function Navbar() {
                     initial={{ rotate: 90, opacity: 0 }}
                     animate={{ rotate: 0, opacity: 1 }}
                     exit={{ rotate: -90, opacity: 0 }}
+                    transition={{ duration: 0.15 }}
                   >
                     <Menu className="w-5 h-5" />
                   </motion.div>
@@ -136,9 +134,9 @@ export default function Navbar() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="md:hidden glass border-b border-dark-700/50 overflow-hidden"
+            className="md:hidden bg-surface-850 border-b border-surface-700/40 overflow-hidden"
           >
-            <div className="container mx-auto px-4 py-4 flex flex-col gap-2">
+            <div className="container mx-auto px-4 py-3 flex flex-col gap-1">
               {!isHome && (
                 <Link 
                   to="/"

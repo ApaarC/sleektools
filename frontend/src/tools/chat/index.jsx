@@ -54,8 +54,6 @@ export default function QuickChat() {
     try {
       const newRoomId = generateRoomId(config.settings.roomIdLength)
       
-      // In a real app, we'd create the room on the server first
-      // For now, we'll navigate directly and let the room component handle creation
       setUserName(name.trim())
       setRoom({
         id: newRoomId,
@@ -107,9 +105,9 @@ export default function QuickChat() {
     <div className="tool-page">
       {/* Header */}
       <div className="tool-header">
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500/20 to-purple-500/20 
+        <div className="w-11 h-11 rounded-xl bg-surface-800 border border-surface-700/50
                       flex items-center justify-center">
-          <MessageCircle className="w-6 h-6 text-primary-400" />
+          <MessageCircle className="w-5 h-5 text-surface-300" />
         </div>
         <div>
           <h1 className="tool-title">Quick Chat</h1>
@@ -124,16 +122,19 @@ export default function QuickChat() {
             icon={Zap} 
             title="Instant" 
             description="No signup required" 
+            color="teal"
           />
           <FeatureCard 
             icon={Shield} 
             title="Private" 
             description="Messages not stored" 
+            color="amber"
           />
           <FeatureCard 
             icon={Clock} 
             title="Auto-Expire" 
             description="Rooms delete in 6 hours" 
+            color="crimson"
           />
         </div>
 
@@ -144,8 +145,8 @@ export default function QuickChat() {
             className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl 
                       font-medium transition-all duration-200 ${
               mode === 'create'
-                ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/25'
-                : 'bg-dark-800 text-dark-400 hover:bg-dark-700'
+                ? 'bg-surface-50 text-surface-900'
+                : 'bg-surface-800 text-surface-400 hover:bg-surface-750'
             }`}
           >
             <Plus className="w-5 h-5" />
@@ -156,8 +157,8 @@ export default function QuickChat() {
             className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl 
                       font-medium transition-all duration-200 ${
               mode === 'join'
-                ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/25'
-                : 'bg-dark-800 text-dark-400 hover:bg-dark-700'
+                ? 'bg-surface-50 text-surface-900'
+                : 'bg-surface-800 text-surface-400 hover:bg-surface-750'
             }`}
           >
             <LogIn className="w-5 h-5" />
@@ -211,10 +212,10 @@ export default function QuickChat() {
                     type="checkbox"
                     checked={usePin}
                     onChange={(e) => setUsePin(e.target.checked)}
-                    className="w-5 h-5 rounded bg-dark-700 border-dark-600 
-                             text-primary-500 focus:ring-primary-500/50"
+                    className="w-5 h-5 rounded bg-surface-750 border-surface-600 
+                             text-surface-50 focus:ring-surface-500/50"
                   />
-                  <span className="text-dark-300 flex items-center gap-2">
+                  <span className="text-surface-300 flex items-center gap-2">
                     <Lock className="w-4 h-4" />
                     Protect with PIN
                   </span>
@@ -256,7 +257,7 @@ export default function QuickChat() {
               <motion.p
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-red-400 text-sm"
+                className="text-crimson-400 text-sm"
               >
                 {error}
               </motion.p>
@@ -276,23 +277,23 @@ export default function QuickChat() {
         </Card>
 
         {/* Info */}
-        <Card className="mt-6 bg-dark-800/30">
-          <h3 className="text-sm font-medium text-dark-300 mb-3">💡 How it works</h3>
-          <ul className="text-sm text-dark-500 space-y-2">
+        <Card className="mt-6 bg-surface-850/50">
+          <h3 className="text-sm font-medium text-surface-300 mb-3">💡 How it works</h3>
+          <ul className="text-sm text-surface-500 space-y-2">
             <li className="flex items-start gap-2">
-              <span className="text-primary-400">1.</span>
+              <span className="text-teal-400">1.</span>
               Create a room and share the link or room code
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-primary-400">2.</span>
+              <span className="text-teal-400">2.</span>
               Others join using the code - no signup needed
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-primary-400">3.</span>
+              <span className="text-teal-400">3.</span>
               Chat in real-time with instant message delivery
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-primary-400">4.</span>
+              <span className="text-teal-400">4.</span>
               Room auto-deletes after {config.settings.maxRoomDurationHours} hours
             </li>
           </ul>
@@ -302,19 +303,24 @@ export default function QuickChat() {
   )
 }
 
-function FeatureCard({ icon: Icon, title, description }) {
+function FeatureCard({ icon: Icon, title, description, color = 'teal' }) {
+  const colorMap = {
+    teal: 'text-teal-400 bg-teal-500/10',
+    amber: 'text-amber-400 bg-amber-500/10',
+    crimson: 'text-crimson-400 bg-crimson-500/10',
+  }
+  
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass-card p-4 text-center"
+      className="card p-4 text-center"
     >
-      <div className="w-10 h-10 mx-auto mb-3 rounded-xl bg-primary-500/10 
-                    flex items-center justify-center">
-        <Icon className="w-5 h-5 text-primary-400" />
+      <div className={`w-10 h-10 mx-auto mb-3 rounded-xl flex items-center justify-center ${colorMap[color]}`}>
+        <Icon className="w-5 h-5" />
       </div>
-      <h3 className="font-medium text-dark-200 mb-1">{title}</h3>
-      <p className="text-xs text-dark-500">{description}</p>
+      <h3 className="font-medium text-surface-200 mb-1">{title}</h3>
+      <p className="text-xs text-surface-500">{description}</p>
     </motion.div>
   )
 }

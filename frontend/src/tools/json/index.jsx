@@ -132,9 +132,9 @@ export default function JsonFormatter() {
     <div className="tool-page">
       {/* Header */}
       <div className="tool-header">
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500/20 to-purple-500/20 
+        <div className="w-11 h-11 rounded-xl bg-surface-800 border border-surface-700/50
                       flex items-center justify-center">
-          <Braces className="w-6 h-6 text-primary-400" />
+          <Braces className="w-5 h-5 text-surface-300" />
         </div>
         <div>
           <h1 className="tool-title">JSON Formatter</h1>
@@ -146,16 +146,16 @@ export default function JsonFormatter() {
       <Card className="flex flex-wrap items-center gap-3">
         {/* Indent Size */}
         <div className="flex items-center gap-2">
-          <span className="text-sm text-dark-400">Indent:</span>
+          <span className="text-sm text-surface-400">Indent:</span>
           <div className="flex gap-1">
             {[2, 4].map((size) => (
               <button
                 key={size}
                 onClick={() => setIndentSize(size)}
-                className={`px-3 py-1.5 text-sm rounded-lg transition-all ${
+                className={`px-3 py-1.5 text-sm rounded-lg transition-all duration-150 ${
                   indentSize === size
-                    ? 'bg-primary-500 text-white'
-                    : 'bg-dark-700 text-dark-400 hover:bg-dark-600'
+                    ? 'bg-surface-50 text-surface-900'
+                    : 'bg-surface-750 text-surface-400 hover:text-surface-200'
                 }`}
               >
                 {size}
@@ -164,7 +164,7 @@ export default function JsonFormatter() {
           </div>
         </div>
 
-        <div className="h-6 w-px bg-dark-700 hidden sm:block" />
+        <div className="h-5 w-px bg-surface-700 hidden sm:block" />
 
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-2">
@@ -195,7 +195,9 @@ export default function JsonFormatter() {
         <div className="flex-1" />
 
         {/* File Upload */}
-        <label className="btn-secondary cursor-pointer">
+        <label className="btn btn-md bg-surface-750 text-surface-100 
+                         border border-surface-600/50 hover:bg-surface-700 
+                         cursor-pointer transition-all duration-150">
           <Upload className="w-4 h-4" />
           <span>Upload</span>
           <input
@@ -219,9 +221,10 @@ export default function JsonFormatter() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
           >
-            <div className="flex items-center gap-2 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
-              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
-              <span className="text-red-400 text-sm">{error}</span>
+            <div className="flex items-center gap-3 p-4 bg-crimson-500/10 
+                          border border-crimson-500/20 rounded-xl">
+              <AlertCircle className="w-4 h-4 text-crimson-400 flex-shrink-0" />
+              <span className="text-crimson-400 text-sm">{error}</span>
             </div>
           </motion.div>
         )}
@@ -231,14 +234,15 @@ export default function JsonFormatter() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
           >
-            <div className="flex items-center gap-2 p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
-              <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0" />
-              <span className="text-green-400 text-sm">
+            <div className="flex items-center gap-3 p-4 bg-teal-500/10 
+                          border border-teal-500/20 rounded-xl">
+              <CheckCircle2 className="w-4 h-4 text-teal-400 flex-shrink-0" />
+              <span className="text-teal-400 text-sm">
                 Valid JSON • {isMinified ? 'Minified' : `Formatted with ${indentSize} spaces`}
               </span>
-              <Badge variant="success" className="ml-auto">
+              <span className="ml-auto text-xs text-surface-400">
                 {(output.length / 1024).toFixed(1)} KB
-              </Badge>
+              </span>
             </div>
           </motion.div>
         )}
@@ -249,13 +253,13 @@ export default function JsonFormatter() {
         {/* Input */}
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <label className="text-sm font-medium text-dark-300 flex items-center gap-2">
-              <FileJson className="w-4 h-4" />
+            <label className="text-sm font-medium text-surface-300 flex items-center gap-2">
+              <FileJson className="w-4 h-4 text-surface-500" />
               Input
             </label>
             {input && (
-              <span className="text-xs text-dark-500">
-                {input.length.toLocaleString()} characters
+              <span className="text-xs text-surface-500">
+                {input.length.toLocaleString()} chars
               </span>
             )}
           </div>
@@ -265,7 +269,7 @@ export default function JsonFormatter() {
               setInput(e.target.value)
               setError(null)
             }}
-            placeholder='Paste your JSON here...\n\n{\n  "example": "value"\n}'
+            placeholder='Paste your JSON here...'
             className="flex-1 min-h-[300px] lg:min-h-[400px]"
           />
         </div>
@@ -273,13 +277,13 @@ export default function JsonFormatter() {
         {/* Output */}
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <label className="text-sm font-medium text-dark-300 flex items-center gap-2">
-              <Braces className="w-4 h-4" />
+            <label className="text-sm font-medium text-surface-300 flex items-center gap-2">
+              <Braces className="w-4 h-4 text-surface-500" />
               Output
             </label>
             {output && (
-              <span className="text-xs text-dark-500">
-                {output.length.toLocaleString()} characters
+              <span className="text-xs text-surface-500">
+                {output.length.toLocaleString()} chars
               </span>
             )}
           </div>
@@ -287,21 +291,20 @@ export default function JsonFormatter() {
             value={output}
             readOnly
             placeholder="Formatted JSON will appear here..."
-            className="flex-1 min-h-[300px] lg:min-h-[400px] bg-dark-900"
+            className="flex-1 min-h-[300px] lg:min-h-[400px] bg-surface-850"
           />
         </div>
       </div>
 
       {/* Tips */}
-      <Card className="bg-dark-800/30">
-        <h3 className="text-sm font-medium text-dark-300 mb-2">💡 Tips</h3>
-        <ul className="text-sm text-dark-500 space-y-1">
+      <div className="p-4 bg-surface-850 border border-surface-700/30 rounded-xl">
+        <h3 className="text-sm font-medium text-surface-300 mb-2">Tips</h3>
+        <ul className="text-sm text-surface-500 space-y-1">
           <li>• Paste JSON directly or upload a .json file</li>
           <li>• Format adds indentation for readability</li>
-          <li>• Minify removes whitespace to reduce size</li>
-          <li>• All processing happens in your browser - no data leaves your device</li>
+          <li>• All processing happens in your browser — no data leaves your device</li>
         </ul>
-      </Card>
+      </div>
     </div>
   )
 }
