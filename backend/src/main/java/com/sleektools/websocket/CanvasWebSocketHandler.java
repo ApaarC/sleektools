@@ -49,16 +49,20 @@ public class CanvasWebSocketHandler extends TextWebSocketHandler {
         canvasSessions.computeIfAbsent(token, k -> ConcurrentHashMap.newKeySet()).add(session);
         sessionToCanvas.put(session.getId(), token);
         
+        // Assign Pokemon name and color to user
+        String userName = canvasService.assignUserName(session.getId());
+        String userColor = canvasService.getUserColor(session.getId());
+        
         // Add participant to canvas
         canvasService.addParticipant(token, session.getId());
 
-        System.out.println("[CanvasWS] User connected to canvas " + token + " | Session: " + session.getId());
+        System.out.println("[CanvasWS] User '" + userName + "' connected to canvas " + token + " | Session: " + session.getId());
+        
+        // Send the user their assigned name and color
+        sendMessage(session, createUserInfoMessage(session.getId(), userName, userColor));
         
         // Notify existing participants that someone joined
-        broadcastToCanvas(token, createMessage("JOIN", Map.of(
-            "participantId", session.getId(),
-            "sendToNew", false
-        )), session);
+        broadcastToCanvas(token, createMessage("USER_JOINED", createUserJoinData(session.getId(), userName, userColor)), session);
         
         // Send participant list to all
         broadcastParticipants(token);
@@ -69,10 +73,7 @@ public class CanvasWebSocketHandler extends TextWebSocketHandler {
             // Ask the first non-new session to send canvas state
             for (WebSocketSession s : sessions) {
                 if (!s.getId().equals(session.getId()) && s.isOpen()) {
-                    sendMessage(s, createMessage("JOIN", Map.of(
-                        "participantId", session.getId(),
-                        "sendToNew", true
-                    )));
+                    sendMessage(s, createMessage("JOIN", createJoinData(session.getId(), true)));
                     break;
                 }
             }
@@ -90,8 +91,6 @@ public class CanvasWebSocketHandler extends TextWebSocketHandler {
         try {
             JsonNode json = objectMapper.readTree(message.getPayload());
             String type = json.has("type") ? json.get("type").asText() : "";
-            
-            System.out.println("[CanvasWS] Received message type: " + type + " from session: " + session.getId());
 
             switch (type) {
                 case "DRAW":
@@ -103,7 +102,11 @@ public class CanvasWebSocketHandler extends TextWebSocketHandler {
                     // Broadcast clear command
                     handleClear(session, token);
                     break;
-                    
+                
+                case "CURSOR":
+                    // Broadcast cursor position to all other participants
+                    handleCursor(session, token, json);
+                    break;
                 case "SYNC_REQUEST":
                     // New user requesting canvas sync
                     handleSyncRequest(session, token);
@@ -127,6 +130,7 @@ public class CanvasWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         String token = sessionToCanvas.remove(session.getId());
+        String userName = canvasService.getUserName(session.getId());
         
         if (token != null) {
             Set<WebSocketSession> sessions = canvasSessions.get(token);
@@ -141,7 +145,13 @@ public class CanvasWebSocketHandler extends TextWebSocketHandler {
             
             canvasService.removeParticipant(token, session.getId());
             
-            System.out.println("[CanvasWS] User disconnected from canvas " + token + " | Session: " + session.getId());
+            // Notify others that user left
+            broadcastToCanvas(token, createMessage("USER_LEFT", createUserLeftData(session.getId(), userName)), null);
+            
+            System.out.println("[CanvasWS] User '" + userName + "' disconnected from canvas " + token);
+            
+            // Clean up user name mapping
+            canvasService.removeUserName(session.getId());
             
             // Broadcast updated participant list
             broadcastParticipants(token);
@@ -152,6 +162,26 @@ public class CanvasWebSocketHandler extends TextWebSocketHandler {
     public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
         System.out.println("[CanvasWS] Transport error for session " + session.getId() + ": " + exception.getMessage());
         session.close(CloseStatus.SERVER_ERROR);
+    }
+    
+    private void handleCursor(WebSocketSession sender, String token, JsonNode json) {
+        // Broadcast cursor position to all except sender
+        if (json.has("data")) {
+            String userName = canvasService.getUserName(sender.getId());
+            String userColor = canvasService.getUserColor(sender.getId());
+            
+            ObjectNode message = objectMapper.createObjectNode();
+            message.put("type", "CURSOR");
+            ObjectNode data = objectMapper.createObjectNode();
+            data.put("odentityId", sender.getId());
+            data.put("userName", userName);
+            data.put("userColor", userColor);
+            data.put("x", json.get("data").get("x").asDouble());
+            data.put("y", json.get("data").get("y").asDouble());
+            message.set("data", data);
+            
+            broadcastToCanvas(token, message.toString(), sender);
+        }
     }
 
     private void handleDraw(WebSocketSession sender, String token, JsonNode json) {
@@ -176,10 +206,7 @@ public class CanvasWebSocketHandler extends TextWebSocketHandler {
             for (WebSocketSession s : sessions) {
                 if (!s.getId().equals(requester.getId()) && s.isOpen()) {
                     // Ask this session to send sync data
-                    sendMessage(s, createMessage("JOIN", Map.of(
-                        "participantId", requester.getId(),
-                        "sendToNew", true
-                    )));
+                    sendMessage(s, createMessage("JOIN", createJoinData(requester.getId(), true)));
                     return;
                 }
             }
@@ -213,6 +240,7 @@ public class CanvasWebSocketHandler extends TextWebSocketHandler {
 
     private void broadcastParticipants(String token) {
         List<String> participants = canvasService.getParticipants(token);
+        System.out.println("[CanvasWS] Broadcasting participant count: " + participants.size() + " for canvas " + token);
         String message = createMessage("PARTICIPANTS", participants);
         broadcastToCanvas(token, message, null);
     }
@@ -237,6 +265,43 @@ public class CanvasWebSocketHandler extends TextWebSocketHandler {
             }
         } catch (IOException e) {
             System.out.println("[CanvasWS] Error sending message: " + e.getMessage());
+        }
+    }
+
+    private Map<String, Object> createJoinData(String participantId, boolean sendToNew) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("participantId", participantId);
+        data.put("sendToNew", sendToNew);
+        return data;
+    }
+    
+    private Map<String, Object> createUserJoinData(String odentityId, String userName, String userColor) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("odentityId", odentityId);
+        data.put("userName", userName);
+        data.put("userColor", userColor);
+        return data;
+    }
+    
+    private Map<String, Object> createUserLeftData(String odentityId, String userName) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("odentityId", odentityId);
+        data.put("userName", userName);
+        return data;
+    }
+    
+    private String createUserInfoMessage(String odentityId, String userName, String userColor) {
+        try {
+            ObjectNode message = objectMapper.createObjectNode();
+            message.put("type", "USER_INFO");
+            ObjectNode data = objectMapper.createObjectNode();
+            data.put("odentityId", odentityId);
+            data.put("userName", userName);
+            data.put("userColor", userColor);
+            message.set("data", data);
+            return objectMapper.writeValueAsString(message);
+        } catch (Exception e) {
+            return "{\"type\":\"ERROR\",\"content\":\"Failed to create user info\"}";
         }
     }
 

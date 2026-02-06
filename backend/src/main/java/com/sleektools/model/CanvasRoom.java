@@ -1,8 +1,8 @@
 package com.sleektools.model;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CanvasRoom {
     private String token;
@@ -12,7 +12,7 @@ public class CanvasRoom {
     private String canvasData; // Base64 encoded canvas image data
     
     public CanvasRoom() {
-        this.participantIds = new HashSet<>();
+        this.participantIds = ConcurrentHashMap.newKeySet();
         this.createdAt = LocalDateTime.now();
         this.lastActivity = LocalDateTime.now();
     }

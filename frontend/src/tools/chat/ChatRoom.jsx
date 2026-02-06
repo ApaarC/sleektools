@@ -14,7 +14,8 @@ import {
   Key,
   Check
 } from 'lucide-react'
-import { Button, Badge } from '@/components'
+import { Button, Badge, InlineError } from '@/components'
+import { RoomNotFoundPage, ConnectionErrorPage } from '@/pages'
 import { useChatStore } from '@/store'
 import config from './config'
 
@@ -48,6 +49,8 @@ export default function ChatRoom() {
   const [needsPin, setNeedsPin] = useState(false)
   const [pinInput, setPinInput] = useState('')
   const [enteredPin, setEnteredPin] = useState('')
+  const [roomNotFound, setRoomNotFound] = useState(false)
+  const [connectionFailed, setConnectionFailed] = useState(false)
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -166,7 +169,13 @@ export default function ChatRoom() {
                 break
 
               case 'ERROR':
-                store.setError(String(data.content || 'Unknown error'))
+                const errorMsg = String(data.content || 'Unknown error')
+                // Check for room not found errors
+                if (errorMsg.includes('not found') || errorMsg.includes('does not exist')) {
+                  setRoomNotFound(true)
+                } else {
+                  store.setError(errorMsg)
+                }
                 break
 
               default:
@@ -181,7 +190,13 @@ export default function ChatRoom() {
           console.log('WebSocket closed:', event.code, event.reason)
           setConnectionStatus(false, false)
           
-          if (event.code !== 1000 && event.code !== 1001) {
+          // Check for room not found in close reason
+          if (event.reason?.includes('not found') || event.code === 4004) {
+            setRoomNotFound(true)
+            return
+          }
+          
+          if (event.code !== 1000 && event.code !== 1001 && !roomNotFound) {
             reconnectTimeoutRef.current = setTimeout(() => {
               if (wsRef.current === ws) {
                 console.log('Attempting to reconnect...')
@@ -275,6 +290,23 @@ export default function ChatRoom() {
 
   if (!userName) {
     return null
+  }
+
+  // Show full-page error states
+  if (roomNotFound) {
+    return <RoomNotFoundPage type="room" />
+  }
+
+  if (connectionFailed) {
+    return (
+      <ConnectionErrorPage 
+        onRetry={() => {
+          setConnectionFailed(false)
+          setError(null)
+          window.location.reload()
+        }} 
+      />
+    )
   }
 
   return (

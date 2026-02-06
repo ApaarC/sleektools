@@ -4,7 +4,7 @@ import { AnimatePresence } from 'framer-motion'
 import { useThemeStore } from '@/store'
 import { ToolLayout, LoadingSpinner } from '@/components'
 import toolRegistry from './tool-registry'
-import HomePage from './pages/HomePage'
+import { HomePage, NotFoundPage } from './pages'
 import ChatRoom from './tools/chat/ChatRoom'
 import CanvasRoom from './tools/canvas/CanvasRoom'
 
@@ -46,25 +46,11 @@ function App() {
             <Route path="/c/:token" element={<CanvasRoom />} />
             
             {/* 404 fallback */}
-            <Route path="*" element={<NotFound />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>
       </AnimatePresence>
     </ToolLayout>
-  )
-}
-
-function NotFound() {
-  return (
-    <div className="page-content flex flex-col items-center justify-center min-h-[60vh] text-center">
-      <h1 className="text-6xl font-bold gradient-text mb-4">404</h1>
-      <p className="text-dark-400 text-lg mb-8">
-        This tool doesn't exist yet... but maybe it should!
-      </p>
-      <a href="/" className="btn-primary">
-        Back to Home
-      </a>
-    </div>
   )
 }
 

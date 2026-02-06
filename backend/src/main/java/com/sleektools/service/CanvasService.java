@@ -11,22 +11,86 @@ import java.util.stream.Collectors;
 @Service
 public class CanvasService {
     
-    private static final String TOKEN_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    private static final int TOKEN_LENGTH = 24;
     private static final int MAX_CANVAS_HOURS = 24;
     private static final SecureRandom random = new SecureRandom();
     
+    // Pokemon names for anonymous users
+    private static final String[] POKEMON_NAMES = {
+        "Pikachu", "Charizard", "Bulbasaur", "Squirtle", "Jigglypuff",
+        "Meowth", "Psyduck", "Snorlax", "Eevee", "Gengar",
+        "Dragonite", "Mewtwo", "Mew", "Togepi", "Pichu",
+        "Lugia", "Ho-Oh", "Celebi", "Treecko", "Torchic",
+        "Mudkip", "Gardevoir", "Rayquaza", "Lucario", "Garchomp",
+        "Piplup", "Dialga", "Palkia", "Giratina", "Arceus",
+        "Oshawott", "Zoroark", "Reshiram", "Zekrom", "Kyurem",
+        "Fennekin", "Greninja", "Sylveon", "Xerneas", "Yveltal",
+        "Rowlet", "Mimikyu", "Lunala", "Solgaleo", "Necrozma",
+        "Scorbunny", "Sobble", "Grookey", "Zacian", "Zamazenta"
+    };
+    
+    // Color palette for user cursors
+    private static final String[] USER_COLORS = {
+        "#ef4444", "#f97316", "#eab308", "#22c55e", "#14b8a6",
+        "#3b82f6", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"
+    };
+    
     private final Map<String, CanvasRoom> canvasRooms = new ConcurrentHashMap<>();
+    private final Map<String, String> sessionToName = new ConcurrentHashMap<>();
+    private final Map<String, String> sessionToColor = new ConcurrentHashMap<>();
     
     /**
-     * Generate a unique URL-safe token for the canvas
+     * Generate a unique UUID-based token for the canvas (impossible to guess)
      */
     public String generateToken() {
-        StringBuilder token = new StringBuilder(TOKEN_LENGTH);
-        for (int i = 0; i < TOKEN_LENGTH; i++) {
-            token.append(TOKEN_CHARS.charAt(random.nextInt(TOKEN_CHARS.length())));
-        }
-        return token.toString();
+        // Use UUID for maximum uniqueness and security
+        return UUID.randomUUID().toString().replace("-", "");
+    }
+    
+    /**
+     * Generate a random Pokemon name for an anonymous user
+     */
+    public String generatePokemonName() {
+        return POKEMON_NAMES[random.nextInt(POKEMON_NAMES.length)];
+    }
+    
+    /**
+     * Get a random color for user cursor
+     */
+    public String getRandomColor() {
+        return USER_COLORS[random.nextInt(USER_COLORS.length)];
+    }
+    
+    /**
+     * Assign a Pokemon name to a session
+     */
+    public String assignUserName(String sessionId) {
+        String name = generatePokemonName();
+        String color = getRandomColor();
+        sessionToName.put(sessionId, name);
+        sessionToColor.put(sessionId, color);
+        return name;
+    }
+    
+    /**
+     * Get user name for a session
+     */
+    public String getUserName(String sessionId) {
+        return sessionToName.getOrDefault(sessionId, "Anonymous");
+    }
+    
+    /**
+     * Get user color for a session
+     */
+    public String getUserColor(String sessionId) {
+        return sessionToColor.getOrDefault(sessionId, "#ffffff");
+    }
+    
+    /**
+     * Remove user name mapping when they disconnect
+     */
+    public void removeUserName(String sessionId) {
+        sessionToName.remove(sessionId);
+        sessionToColor.remove(sessionId);
     }
     
     /**
